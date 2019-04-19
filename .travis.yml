@@ -40,6 +40,16 @@ matrix:
       - find . -path './.git' -prune -or -path './test-files' -prune -or \( -type f \) -print0 | xargs -0 -L1 bash -c 'if test "$(grep --files-with-matches --binary-files=without-match --max-count=1 --regexp='.*' "$0")" && test "$(tail --bytes=1 "$0")"; then echo "No new line at end of $0."; false; fi'
 
 
+  - name: "Spell check"
+    language: python
+    python: 3.6
+    install:
+      # https://github.com/codespell-project/codespell
+      - pip install codespell
+    script:
+      - codespell --skip="${TRAVIS_BUILD_DIR}/.git" "${TRAVIS_BUILD_DIR}"
+
+
   allow_failures:
     # define the key used to determine whether job failures are allowed
     - env: ALLOW_FAILURES=true
