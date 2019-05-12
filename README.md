@@ -8,5 +8,5 @@ See [.travis.yml](https://github.com/per1234/formatting-checks/blob/master/.trav
 - Tabs
 - Trailing whitespace
 - Non-Unix line endings
-- Blank lines at end of file
+- Extra blank lines at end of file
 - Files that don't end in a newline
