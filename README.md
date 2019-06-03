@@ -16,3 +16,7 @@ Git pre-commit hooks to check for non-compliant formatting are located in the `h
 - Non-Unix line endings
 - Extra blank lines at end of file
 - Files that don't end in a newline
+
+
+### Contributing
+Pull requests or issue reports are welcome! Please see the [contribution rules](https://github.com/per1234/formatting-checks/blob/master/.github/CONTRIBUTING.md) for instructions.
