@@ -6,6 +6,8 @@ See the "Test Formatting checks (expected to fail)" and "Test Formatting checks 
 
 Scripts to correct non-compliant formatting are located in the `correction-scripts` folder.
 
+Git pre-commit hooks to check for non-compliant formatting are located in the `hooks` folder.
+
 ### Checks
 - UTF-8 BOM file encoding
 - Files starting with blank lines

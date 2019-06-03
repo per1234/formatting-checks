@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Check for files that don't end in a newline
+
+# Stash so that unstaged changes are not checked
+git stash -q --keep-index
+
+# Set default exit status
+exitStatus=0
+
+while read -r filename; do
+  # Check if the file is tracked by git
+  if ! git ls-files --error-unmatch "$filename" &>/dev/null; then
+    # Don't check untracked files
+    continue
+  fi
+
+  if test "$(grep --files-with-matches --binary-files=without-match --max-count=1 --regexp='.*' "$filename")" && test "$(tail --bytes=1 "$filename")"; then
+    echo "ERROR: No new line at end of $filename"
+    # Make the hook fail
+    exitStatus=1
+  fi
+done <<<"$(find . -path './.git' -prune -or -type f)"
+
+git stash pop -q
+
+exit $exitStatus

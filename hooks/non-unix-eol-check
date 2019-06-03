@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Check for non-Unix EOL
+
+# Stash so that unstaged changes are not checked
+git stash -q --keep-index
+
+# Set default exit status
+exitStatus=0
+
+while read -r filename; do
+  # Check if the file is tracked by git
+  if ! git ls-files --error-unmatch "$filename" &>/dev/null; then
+    # Don't check untracked files
+    continue
+  fi
+
+  if grep --files-with-matches --binary-files=without-match --regexp=$'\r$' "$filename"; then
+    echo "ERROR: Non-Unix EOL detected in $filename"
+    # Make the hook fail
+    exitStatus=1
+  fi
+done <<<"$(find . -path './.git' -prune -or -type f)"
+
+git stash pop -q
+
+exit $exitStatus

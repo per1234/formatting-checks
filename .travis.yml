@@ -87,6 +87,7 @@ matrix:
     language: minimal
     script:
       - find ${TRAVIS_BUILD_DIR}/correction-scripts -name '*.sh' -and -type f -print0 | xargs --null --max-lines=1 bash -c 'if ! shellcheck -e SC2016 "$0"; then false; fi'
+      - find ${TRAVIS_BUILD_DIR}/hooks -not -name '*.*' -and -type f -print0 | xargs --null --max-lines=1 bash -c 'if ! shellcheck "$0"; then false; fi'
 
 
   # Check for inconsistent script formatting
@@ -96,6 +97,7 @@ matrix:
       - go get -u mvdan.cc/sh/cmd/shfmt
     script:
       - shfmt -i 2 -d ${TRAVIS_BUILD_DIR}/correction-scripts
+      - shfmt -i 2 -d ${TRAVIS_BUILD_DIR}/hooks
 
 
 notifications:
