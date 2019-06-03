@@ -1,7 +1,13 @@
 env:
 matrix:
+  allow_failures:
+    # define the key used to determine whether job failures are allowed
+    - env: ALLOW_FAILURES=true
   include:
-  - name: "Formatting checks expected to fail"
+
+
+  # Confirm that the formatting checks will catch improper formatting
+  - name: "Test Formatting checks (expected to fail)"
     env: ALLOW_FAILURES=true
     language: minimal
     script:
@@ -21,7 +27,8 @@ matrix:
       - find . -path './.git' -prune -or -type f -print0 | xargs --null --max-lines=1 bash -c 'if test "$(grep --files-with-matches --binary-files=without-match --max-count=1 --regexp='.*' "$0")" && test "$(tail --bytes=1 "$0")"; then echo "No new line at end of $0."; false; fi'
 
 
-  - name: "Formatting checks expected to pass"
+  # Demonstrate various ways of excluding files/folders from the checks
+  - name: "Test Formatting checks (expected to pass)"
     language: minimal
     script:
       # Check for UTF-8 BOM file encoding
@@ -44,6 +51,27 @@ matrix:
       - find . -path './.git' -prune -or -path './test-files' -prune -or \( -type f \) -print0 | xargs --null --max-lines=1 bash -c 'if test "$(grep --files-with-matches --binary-files=without-match --max-count=1 --regexp='.*' "$0")" && test "$(tail --bytes=1 "$0")"; then echo "No new line at end of $0."; false; fi'
 
 
+  # Check the files in the repository for consistent formatting
+  - name: "Formatting checks"
+    language: minimal
+    script:
+      # Check for UTF-8 BOM file encoding
+      - find . -path './.git' -prune -or -path './test-files' -prune -or -type f -exec grep --files-with-matches --binary-files=without-match $'\xEF\xBB\xBF' '{}' \; -exec echo 'UTF-8 BOM encoding detected.' \; -exec false '{}' +
+      # Check for files starting with a blank line
+      - find . -path './.git' -prune -or -path './test-files' -prune -or -type f -print0 | xargs --null --max-lines=1 bash -c 'head -1 "$0" | grep --binary-files=without-match --regexp="^$"; if [[ "$?" == "0" ]]; then echo "Blank line found at start of $0."; false; fi'
+      # Check for tabs
+      - find . -path './.git' -prune -or -path './test-files' -prune -or -type f -exec grep --with-filename --line-number --binary-files=without-match --regexp=$'\t' '{}' \; -exec echo 'Tab found.' \; -exec false '{}' +
+      # Check for non-Unix line endings
+      - find . -path './.git' -prune -or -path './test-files' -prune -or -type f -exec grep --files-with-matches --binary-files=without-match --regexp=$'\r$' '{}' \; -exec echo 'Non-Unix EOL detected.' \; -exec false '{}' +
+      # Check for trailing whitespace
+      - find . -path './.git' -prune -or -path './test-files' -prune -or -type f -exec grep --with-filename --line-number --binary-files=without-match --regexp='[[:blank:]]$' '{}' \; -exec echo 'Trailing whitespace found.' \; -exec false '{}' +
+      # Check for extra blank lines at end of files
+      - find . -path './.git' -prune -or -path './test-files' -prune -or -type f -print0 | xargs --null --max-lines=1 bash -c 'tail -1 "$0" | grep --binary-files=without-match --regexp="^$"; if [[ "$?" == "0" ]]; then echo "Blank line found at end of $0."; false; fi'
+      # Check for files that don't end in a newline (https://stackoverflow.com/a/25686825)
+      - find . -path './.git' -prune -or -path './test-files' -prune -or -type f -print0 | xargs --null --max-lines=1 bash -c 'if test "$(grep --files-with-matches --binary-files=without-match --max-count=1 --regexp='.*' "$0")" && test "$(tail --bytes=1 "$0")"; then echo "No new line at end of $0."; false; fi'
+
+
+  # Check for commonly misspelled words
   - name: "Spell check"
     language: python
     python: 3.6
@@ -54,9 +82,20 @@ matrix:
       - codespell --skip="${TRAVIS_BUILD_DIR}/.git" "${TRAVIS_BUILD_DIR}"
 
 
-  allow_failures:
-    # define the key used to determine whether job failures are allowed
-    - env: ALLOW_FAILURES=true
+  # Check for common issues with scripts
+  - name: 'ShellCheck'
+    language: minimal
+    script:
+      - find ${TRAVIS_BUILD_DIR}/correction-scripts -name '*.sh' -and -type f -print0 | xargs --null --max-lines=1 bash -c 'if ! shellcheck -e SC2016 "$0"; then false; fi'
+
+
+  # Check for inconsistent script formatting
+  - name: 'Script Formatting Check'
+    language: go
+    install:
+      - go get -u mvdan.cc/sh/cmd/shfmt
+    script:
+      - shfmt -i 2 -d ${TRAVIS_BUILD_DIR}/correction-scripts
 
 
 notifications:
