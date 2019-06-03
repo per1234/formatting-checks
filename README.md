@@ -4,6 +4,7 @@ Tests and demonstration of some file formatting checks that may be used in conti
 
 See [.travis.yml](https://github.com/per1234/formatting-checks/blob/master/.travis.yml) and the [Travis CI build log](https://travis-ci.org/per1234/formatting-checks).
 
+- UTF-8 BOM file encoding
 - Files starting with blank lines
 - Tabs
 - Trailing whitespace
