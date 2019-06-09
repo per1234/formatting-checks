@@ -9,16 +9,19 @@ git stash -q --keep-index
 exitStatus=0
 
 while read -r filename; do
-  # Check if the file is tracked by git
-  if ! git ls-files --error-unmatch "$filename" &>/dev/null; then
-    # Don't check untracked files
-    continue
-  fi
+  # Check if it's a file (find matches on pruned folders)
+  if [[ -f "$filename" ]]; then
+    # Check if the file is tracked by git
+    if ! git ls-files --error-unmatch "$filename" &>/dev/null; then
+      # Don't check untracked files
+      continue
+    fi
 
-  if tail -1 "$filename" | grep --binary-files=without-match --regexp="^$"; then
-    echo "ERROR: Blank line found at end of $filename"
-    # Make the hook fail
-    exitStatus=1
+    if tail -1 "$filename" | grep --binary-files=without-match --regexp="^$"; then
+      echo "ERROR: Blank line found at end of $filename"
+      # Make the hook fail
+      exitStatus=1
+    fi
   fi
 done <<<"$(find . -path './.git' -prune -or -type f)"
 

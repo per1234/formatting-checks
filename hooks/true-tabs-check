@@ -9,16 +9,19 @@ git stash -q --keep-index
 exitStatus=0
 
 while read -r filename; do
-  # Check if the file is tracked by git
-  if ! git ls-files --error-unmatch "$filename" &>/dev/null; then
-    # don't check untracked files
-    continue
-  fi
+  # Check if it's a file (find matches on pruned folders)
+  if [[ -f "$filename" ]]; then
+    # Check if the file is tracked by git
+    if ! git ls-files --error-unmatch "$filename" &>/dev/null; then
+      # don't check untracked files
+      continue
+    fi
 
-  if grep --with-filename --line-number --binary-files=without-match --regexp=$'\t' "$filename"; then
-    echo "ERROR: True tab found in $filename"
-    # Make the hook fail
-    exitStatus=1
+    if grep --with-filename --line-number --binary-files=without-match --regexp=$'\t' "$filename"; then
+      echo "ERROR: True tab found in $filename"
+      # Make the hook fail
+      exitStatus=1
+    fi
   fi
 done <<<"$(find . -path './.git' -prune -or -type f)"
 
