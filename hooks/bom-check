@@ -2,8 +2,16 @@
 
 # Check for files with UTF-8 BOM encoding
 
+# Comma separated list of folders to exclude from the formatting check
+readonly excludedPathList="'./.git'"
+
 # Stash so that unstaged changes are not checked
 git stash -q --keep-index
+
+# Assemble the find options for the excluded paths from the list
+for excludedPath in ${excludedPathList//,/ }; do
+  excludeOptions="$excludeOptions -path $excludedPath -prune -or"
+done
 
 # Set default exit status
 exitStatus=0
@@ -23,7 +31,7 @@ while read -r filename; do
       exitStatus=1
     fi
   fi
-done <<<"$(find . -path './.git' -prune -or -type f)"
+done <<<"$(eval "find . $excludeOptions -type f")"
 
 git stash pop -q
 
